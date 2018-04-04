@@ -67,5 +67,22 @@ for counter, obj in enumerate(insights, start=1):
 
 ## Creating Objects
 
-- Create impact: to be done
-- Create insight: to be done
+### Creating Insight
+
+```python
+insight = api.create_insight(media='news', type='politics', url='http://some.url')
+print(f'Insight created: {insight["id"]}')
+```
+
+> Note: the attributes above are required but you can also pass other optional
+> ones. See the complete list and all the constraints calling
+> `api.insight_options()`.
+
+
+### Creating Impact
+
+To be done.
+
+> Note: the attributes above are required but you can also pass other optional
+> ones. See the complete list and all the constraints calling
+> `api.impact_options()`.

@@ -3,6 +3,18 @@ from urllib.parse import urljoin
 
 import requests
 
+def response_exception(response):
+    try:
+        json_response = response.json()
+    except json.JSONDecodeError:
+        raise RuntimeError(f'Error making request (status code: {response.status_code})')
+    else:
+        error_message = json_response.get('detail', None)
+        if not error_message:
+            error_message = ', '.join([f'{key}: {value}'
+                                       for key, value in json_response.items()])
+        raise RuntimeError(f'Error making request ({error_message})')
+
 
 class Impacto:
 
@@ -37,12 +49,7 @@ class Impacto:
         if response.ok:
             return response.json()
         else:
-            try:
-                json_response = response.json()
-            except json.JSONDecodeError:
-                raise RuntimeError(f'Error making request (status code: {response.status_code})')
-            else:
-                raise RuntimeError(f'Error making request ({json_response["detail"]})')
+            response_exception(response)
 
     def _get_paginated_result(self, url, *args, **kwargs):
         url = urljoin(self.api_url, url)
@@ -57,6 +64,13 @@ class Impacto:
                 finished = True
             else:
                 url = next_page
+
+    def _get_options(self, url):
+        response = requests.options(
+            urljoin(self.api_url, url),
+            params={'access_token': self.access_token},
+        )
+        return response.json()
 
     def impact(self, id):
         return self._get(f'impact/{id}')
@@ -75,3 +89,46 @@ class Impacto:
 
     def stories(self, *args, **kwargs):
         return self._get_paginated_result('stories', *args, **kwargs)
+
+    def impact_options(self):
+        return self._get_options('impacts')
+
+    def insight_options(self):
+        return self._get_options('insights')
+
+    def create_insight(self, url, type, media, comments=None, date=None,
+            followers=None, likes=None, links_partner=None,
+            mentions_partner=None, political_party=None, political_state=None,
+            profile_picture_url=None, profile_title=None, profile_url=None,
+            shares=None, story_url=None, text=None, text_snippet=None,
+            title=None):
+        data = {
+            'comments': comments,
+            'date': date,
+            'followers': followers,
+            'likes': likes,
+            'links_partner': links_partner,
+            'media': media,
+            'mentions_partner': mentions_partner,
+            'political_party': political_party,
+            'political_state': political_state,
+            'profile_picture_url': profile_picture_url,
+            'profile_title': profile_title,
+            'profile_url': profile_url,
+            'shares': shares,
+            'story_url': story_url,
+            'text': text,
+            'text_snippet': text_snippet,
+            'title': title,
+            'type': type,
+            'url': url,
+        }
+        response = requests.post(
+            urljoin(self.api_url, 'insights'),
+            data=data,
+            params={'access_token': self.access_token},
+        )
+        if not response.ok:
+            response_exception(response)
+
+        return response.json()
