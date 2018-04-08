@@ -132,3 +132,39 @@ class Impacto:
             response_exception(response)
 
         return response.json()
+
+    def create_impact(self, url, description, date=None, geo=None,
+                      recorded_by=None, tags=None, uploaded_file=None,
+                      links=None, public=None):
+        data = {
+            'url': url,
+            'description': description,
+            'date': date,
+            'geo': geo,
+            'recorded_by': recorded_by,
+            'tags': tags
+            'uploaded_file': uploaded_file,
+            'links': links,
+            'public': public,
+        }
+        response = requests.post(
+            urljoin(self.api_url, 'impacts'),
+            data=data,
+            params={'access_token': self.access_token},
+        )
+        if not response.ok:
+            response_exception(response)
+
+        return response.json()
+
+    def update_impact(self, update_impact, **kwargs):
+        data = {
+        response = requests.patch(
+            urljoin(self.api_url, 'insight/{}'.format(impact_id)),
+            data=kwargs,
+            params={'access_token': self.access_token},
+        )
+        if not response.ok:
+            response_exception(response)
+
+        return response.json()
